@@ -103,12 +103,11 @@ new Vue({
                 })
             }
             for (var i = 0, len = res.length; i < len; i++) {
-                var field = res[i].match(/\`(.+)\`\s+((tinyint|smallint|int|mediumint|bigint|float|double|decimal|varchar|char|text|mediumtext|longtext|datetime|time|date|enum|set|blob)?[\([\d]+\)]?)?([\w\s\'\.]+(comment\s\'(.*)\'))?/i)
-
+                var field = res[i].match(/\`(.+)\`\s+((tinyint|smallint|int|mediumint|bigint|float|double|decimal|varchar|char|text|mediumtext|longtext|datetime|time|date|enum|set|blob)?([\([\d]+\)])?)?([\w\s\'\.]+(comment\s\'(.*)\'))?/i)
                 if (i == 0) { // 第一个字段为数据表名称
                     if (field && field[1] != undefined && field[2] == undefined) {
                         var tbName = titleCase(field[1])
-                        if ( tableComment.length > 0 ) {
+                        if ( tableComment != null && tableComment.length > 0 ) {
                             structResult = '// '+ tbName + ' ' + tableComment[1] + '\n' + structResult;
                         }
                         structResult += tbName + ' struct {'
@@ -117,8 +116,10 @@ new Vue({
                         return
                     }
                 } else { // 数据表字段
+                    // alert(field[1] + field[2] + field[3])
                     if (field && field[1] != undefined && field[2] != undefined && field[3] != undefined) {
                         if (types[field[3]] != undefined) {
+                            var sourceFieldName = field[1]
                             var fieldName = titleCase(field[1])
                             var fieldType = types[field[3]]
                             var fieldJsonName = field[1].toLowerCase()
@@ -131,7 +132,7 @@ new Vue({
                             structResult += '\n\t' + fieldName + ' ' + fieldType + ' '
                             structArr = []
                             if (this.useGorm) {
-                                var gorm = ["column:"+fieldJsonName, "type:"+field[2]]
+                                var gorm = ["column:"+sourceFieldName, "type:"+field[2]]
 
                                 if (pk.indexOf(field[1]) >= 0) {
                                     gorm.push("primary_key")
